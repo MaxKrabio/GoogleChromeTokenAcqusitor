@@ -8,7 +8,7 @@ crypt::AesGCMDecryptor::AesGCMDecryptor()
 {
     if(!(_ctx = EVP_CIPHER_CTX_new()))
     {
-        std::cerr << "Can't allocate memory for crypt context!";
+        spdlog::error("Can't allocate memory for crypt context!");
     }
 }
 
@@ -22,21 +22,21 @@ bool crypt::AesGCMDecryptor::init()
     /* Initialise the decryption operation. */
     if(!EVP_DecryptInit_ex(_ctx, _cipherFn(), NULL, NULL, NULL))
     {
-        std::cerr << "DecryptInit has been failed!";
+        spdlog::error("DecryptInit has been failed!");
         return false;
     }
 
     /* Set IV length. Not necessary if this is 12 bytes (96 bits) */
     if(!EVP_CIPHER_CTX_ctrl(_ctx, EVP_CTRL_GCM_SET_IVLEN, _iv.size(), NULL))
     {
-        std::cerr << "IV initialization has been failed!";
+        spdlog::error("IV initialization has been failed!");
         return false;
     }
 
     /* Initialise key and IV */
     if(!EVP_DecryptInit_ex(_ctx, NULL, NULL, _decryptKey.data(), _iv.data()))
     {
-        std::cerr << "Decrypt context initialization has been failed!";
+        spdlog::error("Decrypt context initialization has been failed!");
         return false;
     }
     return true;
@@ -69,7 +69,7 @@ bool crypt::AesGCMDecryptor::decrypt(const RawVector& cipherText, RawVector& dec
                           cipherText.data(),
                           cipherText.size()))
     {
-        std::cerr << "Can't decrypt data block!";
+        spdlog::error("Can't decrypt data block!");
     }
     return decryptSize != 0;
 }

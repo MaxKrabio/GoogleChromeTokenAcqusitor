@@ -6,4 +6,6 @@
 #include <fstream>
 #include <iostream>
 #include <filesystem>
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
 #endif

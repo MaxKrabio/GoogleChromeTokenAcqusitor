@@ -46,7 +46,8 @@ void google::WindowsGoogleDbExtractor::GetKey(std::vector<unsigned char>& dbKey)
                             0,     // Optional PromptStruct
                             &outDecryptedBlob))
     {
-        std::cerr << "Can't decrypt key. The last error is: " << GetLastError();
+        spdlog::error("Can't decrypt key. The last error is:");
+        spdlog::error(GetLastError());
         return;
     }
     std::copy(static_cast<unsigned char*>(outDecryptedBlob.pbData),

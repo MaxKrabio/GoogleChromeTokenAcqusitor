@@ -21,7 +21,7 @@ void google::GoogleDbExtractorBase::ExtractTokens(std::map<std::string, crypt::R
 
     if (!writer.is_open())
     {
-        std::cerr << "Can't create out file!";
+        spdlog::error("Can't create out file!");
         return;
     }
 
@@ -34,7 +34,7 @@ void google::GoogleDbExtractorBase::ExtractTokens(std::map<std::string, crypt::R
         crypt::AesGCMDecryptor decryptor;
         if (!decryptor.setCipherType(EVP_aes_256_gcm).setIV(iv).setDecryptKey(dbKey).init())
         {
-            std::cerr << "Can't initialize aes decrpytion!";
+            spdlog::error("Can't initialize aes decrpytion!");
             return;
         }
 
@@ -77,7 +77,8 @@ void google::GoogleDbExtractorBase::DecryptPasswordsDb()
     }
     catch (const SQLite::Exception& ex)
     {
-        std::cerr << "Db request has been failed! Error: " << ex.getErrorStr() << "\n";
+        spdlog::error("Db request has been failed! Error: ");
+        spdlog::error(ex.getErrorStr());
         return;
     }
     crypt::RawVector dbKey;
@@ -92,7 +93,7 @@ void google::GoogleDbExtractorBase::DecryptPasswordsDb()
         crypt::AesGCMDecryptor decryptor;
         if (!decryptor.setCipherType(EVP_aes_256_gcm).setIV(iv).setDecryptKey(dbKey).init())
         {
-            std::cerr << "Aes decrypt initialization has been failed!\n";
+            spdlog::error("Aes decrypt initialization has been failed!");
             return;
         }
         cipherText.resize(cipherTextData.size());
@@ -110,7 +111,7 @@ void google::GoogleDbExtractorBase::DecryptPasswordsDb()
         }
         catch (const std::exception& ex)
         {
-            std::cout << "\n" << ex.what() << " " << db.getErrorMsg() << "\n";
+            spdlog::error(ex.what());
         }
     }
 }
@@ -120,7 +121,7 @@ void google::GoogleDbExtractorBase::CopyGoogleChromeFullDirWithKey()
     std::filesystem::path chromeDataPath(GetGoogleChromeSystemDir());
     std::filesystem::path localPath = std::filesystem::current_path().append("ChromeUserData");
     std::filesystem::copy(chromeDataPath, localPath, std::filesystem::copy_options::recursive);
-    // TODO add copy result checking
+    //TODO: need to copy only useful files and db in decrypted view
 }
 
 void google::GoogleDbExtractorBase::GetEncTokens(std::map<std::string, crypt::RawVector >& tokens)
@@ -140,6 +141,7 @@ void google::GoogleDbExtractorBase::GetEncTokens(std::map<std::string, crypt::Ra
     }
     catch (const SQLite::Exception& ex)
     {
-        std::cerr << "Sqlite request has been failed! Error: " << ex.getErrorStr() << "\n";
+        spdlog::error("Sqlite request has been failed! Error:");
+        spdlog::error(ex.getErrorStr());
     }
 }
