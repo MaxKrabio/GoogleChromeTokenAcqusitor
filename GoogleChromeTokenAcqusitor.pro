@@ -1,7 +1,5 @@
 TEMPLATE = app
-CONFIG += console c++17
-CONFIG -= app_bundle
-CONFIG -= qt
+CONFIG += cmdline c++17 precompile_header
 
 CONFIG += conan_basic_setup
 include(conanbuildinfo.pri)
