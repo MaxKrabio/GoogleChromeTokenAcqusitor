@@ -20,7 +20,7 @@ namespace crypt
         bool decryptFinalize(RawVector& decryptText);
 
     private:
-        EVP_CIPHER_CTX *_ctx;
+        EVP_CIPHER_CTX* _ctx;
         RawVector _decryptKey;
         RawVector _iv;
         CipherFnType* _cipherFn;
