@@ -5,10 +5,11 @@
 
 #include "WindowsGoogleDbExtractor.h"
 #include <windows.h>
-#include <windows.h>
-#include <Wincrypt.h>
 #include "json/json.h"
 #include "base64.h"
+#include "WindowsOldDataDecryptor.h"
+#include <streambuf>
+#include <charconv>
 
 google::WindowsGoogleDbExtractor::WindowsGoogleDbExtractor()
 {
@@ -22,7 +23,12 @@ google::WindowsGoogleDbExtractor::WindowsGoogleDbExtractor(const std::string& us
 
 void google::WindowsGoogleDbExtractor::GetKey(std::vector<unsigned char>& dbKey)
 {
-    std::string fileWithPasswordPath = GetGoogleChromeSystemDir().append("Local State");
+    constexpr DWORD dpApiOffsetSize = 5;
+    const std::string fileWithPasswordPath = GetGoogleChromeSystemDir().append("Local State");
+
+    if (GetVersion() == crypt::ChromeVersionUntil79)
+        return;
+
 
     Json::Value root;
     std::ifstream configDoc(fileWithPasswordPath, std::ifstream::binary);
@@ -32,32 +38,36 @@ void google::WindowsGoogleDbExtractor::GetKey(std::vector<unsigned char>& dbKey)
     const std::string base64EncKey = encKeyObj.asString();
     std::string winCryptedKey = base64_decode(base64EncKey, true);
 
-    DATA_BLOB inCryptedBlob;
-    constexpr DWORD dpApiOffsetSize = 5;
-    inCryptedBlob.pbData = const_cast<BYTE*>(reinterpret_cast<BYTE*> (winCryptedKey.data() + dpApiOffsetSize));
-    inCryptedBlob.cbData = winCryptedKey.size() - dpApiOffsetSize;
-    DATA_BLOB outDecryptedBlob;
+    crypt::RawVector rawCryptedKey(winCryptedKey.begin() + dpApiOffsetSize, winCryptedKey.end());
 
-    if (!CryptUnprotectData(&inCryptedBlob,
-                            NULL,  //&pDescrOut,
-                            NULL,  // Optional entropy
-                            NULL,  // Reserved
-                            NULL,  //&PromptStruct,
-                            0,     // Optional PromptStruct
-                            &outDecryptedBlob))
-    {
-        spdlog::error("Can't decrypt key. The last error is:");
-        spdlog::error(GetLastError());
-        return;
-    }
-    std::copy(static_cast<unsigned char*>(outDecryptedBlob.pbData),
-              static_cast<unsigned char *>(outDecryptedBlob.pbData) + outDecryptedBlob.cbData,
-              std::back_inserter(dbKey));
+    crypt::windows::WindowsOldDataDecryptor().decrypt(rawCryptedKey, dbKey);
 }
 
 std::string google::WindowsGoogleDbExtractor::GetGoogleChromeSystemDir()
 {
     return std::string("C:\\Users\\").append(GetUName()).append("\\AppData\\Local\\Google\\Chrome\\User Data\\");
+}
+
+crypt::ChromeVersion google::WindowsGoogleDbExtractor::GetVersion()
+{
+    const static std::string s_googleChromeVerPath
+            = GetGoogleChromeSystemDir() + "Last Version";
+
+    std::ifstream verFile(s_googleChromeVerPath);
+
+    const std::string verString((std::istreambuf_iterator<char>(verFile)), std::istreambuf_iterator<char>());
+
+    unsigned int value {0};
+    const auto res = std::from_chars(verString.data(), verString.data() + verString.size(), value);
+    if (!res.ptr)
+    {
+        spdlog::error("Google Chrome version parsing has been failed!");
+    }
+
+    if (value == 79)
+        return crypt::ChromeVersionUntil79;
+
+    return crypt::ChromeVersion80AndAbove;
 }
 
 std::string google::WindowsGoogleDbExtractor::GetUName()

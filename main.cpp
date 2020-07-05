@@ -65,6 +65,7 @@ namespace
         catch(std::exception& ex)
         {
             std::cout << cmdOptions << std::endl;
+            spdlog::error(ex.what());
         }
     }
 }
@@ -72,9 +73,9 @@ namespace
 int main(int argc, char** argv)
 {
     InitLoger();
-    google::WindowsGoogleDbExtractor winExtractor;
-    std::map<std::string, crypt::RawVector> tokens;
-    winExtractor.ExtractTokens(tokens);
+//    google::WindowsGoogleDbExtractor winExtractor;
+//    std::map<std::string, crypt::RawVector> tokens;
+//    winExtractor.DecryptPasswordsDb();
     Menu(argc, argv);
     //    winExtractor.CopyGoogleChromeFullDirWithKey();
     return 0;

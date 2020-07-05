@@ -4,6 +4,7 @@
 #include <openssl/aes.h>
 #include <openssl/err.h>
 
+
 crypt::AesGCMDecryptor::AesGCMDecryptor()
 {
     if(!(_ctx = EVP_CIPHER_CTX_new()))

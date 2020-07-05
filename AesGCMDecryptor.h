@@ -1,13 +1,13 @@
 #pragma once
 #include "stdafx.h"
+#include "IDataDecrypt.h"
 #include "openssl/ossl_typ.h"
 
 namespace crypt
 {
-    using RawVector = std::vector<unsigned char>;
     using CipherFnType = const EVP_CIPHER*();
 
-    class AesGCMDecryptor
+    class AesGCMDecryptor : public IDataDecrypt
     {
     public:
         AesGCMDecryptor();
@@ -16,7 +16,8 @@ namespace crypt
         AesGCMDecryptor& setCipherType(CipherFnType cipherFn);
         AesGCMDecryptor& setDecryptKey(const RawVector& key);
         AesGCMDecryptor& setIV(const RawVector& iv);
-        bool decrypt(const RawVector& cipherText, RawVector& decryptText);
+        virtual bool decrypt(const RawVector& cipherText,
+                             RawVector& decryptText) override;
         bool decryptFinalize(RawVector& decryptText);
 
     private:

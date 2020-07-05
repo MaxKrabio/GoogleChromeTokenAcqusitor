@@ -1,5 +1,6 @@
 #pragma once
 #include "IGoogleDbExtractor.h"
+#include "IDataDecrypt.h"
 
 namespace google
 {
@@ -14,6 +15,8 @@ namespace google
      private:
         void GetEncTokens(std::map<std::string, std::vector<unsigned char>>& tokens);
 
-    };
+     private:
+        std::unique_ptr<crypt::IDataDecrypt> _decryptor;
 
+    };
 }

