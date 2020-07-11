@@ -1,5 +1,5 @@
-#include "WindowsGoogleDbExtractor.h"
-#include "AesGCMDecryptor.h"
+#include "windows/WindowsGoogleDbExtractor.h"
+#include "utils/decrypt/AesGCMDecryptor.h"
 #include "boost/program_options.hpp"
 
 namespace

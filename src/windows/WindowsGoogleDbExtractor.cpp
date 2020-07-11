@@ -6,7 +6,7 @@
 #include "WindowsGoogleDbExtractor.h"
 #include <windows.h>
 #include "json/json.h"
-#include "base64.h"
+#include "../utils/base64.h"
 #include "WindowsOldDataDecryptor.h"
 #include <streambuf>
 #include <charconv>

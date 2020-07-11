@@ -1,6 +1,6 @@
-#include "stdafx.h"
+#include "../stdafx.h"
 #include "WindowsDataDecryptor.h"
-#include "AesGCMDecryptor.h"
+#include "../utils/decrypt/AesGCMDecryptor.h"
 
 #include "openssl/evp.h"
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "IDecryptorFactory.h"
+#include "../utils/decrypt/IDecryptorFactory.h"
 
 namespace crypt
 {

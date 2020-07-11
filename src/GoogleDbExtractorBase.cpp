@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "GoogleDbExtractorBase.h"
-#include "AesGCMDecryptor.h"
+#include "utils/decrypt/AesGCMDecryptor.h"
 #include "openssl/evp.h"
 #include <SQLiteCpp/SQLiteCpp.h>
-#include "DataDecryptorFactory.h"
+#include "utils/decrypt/DataDecryptorFactory.h"
 
 namespace
 {

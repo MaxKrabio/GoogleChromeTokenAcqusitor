@@ -1,5 +1,5 @@
 #pragma once
-#include "IDataDecrypt.h"
+#include "../utils/decrypt/IDataDecrypt.h"
 
 namespace crypt
 {

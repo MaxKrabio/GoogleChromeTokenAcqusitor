@@ -6,6 +6,7 @@
 
 
 crypt::AesGCMDecryptor::AesGCMDecryptor()
+    : _cipherFn(nullptr)
 {
     if(!(_ctx = EVP_CIPHER_CTX_new()))
     {
@@ -28,7 +29,7 @@ bool crypt::AesGCMDecryptor::init()
     }
 
     /* Set IV length. Not necessary if this is 12 bytes (96 bits) */
-    if(!EVP_CIPHER_CTX_ctrl(_ctx, EVP_CTRL_GCM_SET_IVLEN, _iv.size(), NULL))
+    if(!EVP_CIPHER_CTX_ctrl(_ctx, EVP_CTRL_GCM_SET_IVLEN, static_cast<int>(_iv.size()), NULL))
     {
         spdlog::error("IV initialization has been failed!");
         return false;
@@ -68,7 +69,7 @@ bool crypt::AesGCMDecryptor::decrypt(const RawVector& cipherText, RawVector& dec
                           decryptText.data(),
                           &decryptSize,
                           cipherText.data(),
-                          cipherText.size()))
+                          static_cast<int>(cipherText.size())))
     {
         spdlog::error("Can't decrypt data block!");
     }

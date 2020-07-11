@@ -1,8 +1,8 @@
-#include "stdafx.h"
+#include "../../stdafx.h"
 #include "DataDecryptorFactory.h"
 
 #if defined (WIN64)
-#include "WindowsDecryptorFactory.h"
+#include "../../windows/WindowsDecryptorFactory.h"
 #elif defined (__linux__)
 #include "LinuxDecryptorFactory.h"
 #elif defined (__APPLE_)

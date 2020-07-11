@@ -1,6 +1,6 @@
 #pragma once
 #include "IGoogleDbExtractor.h"
-#include "IDataDecrypt.h"
+#include "utils/decrypt/IDataDecrypt.h"
 
 namespace google
 {

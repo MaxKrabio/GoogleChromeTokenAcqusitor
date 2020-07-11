@@ -1,5 +1,5 @@
 #pragma once
-#include "GoogleDbExtractorBase.h"
+#include "../GoogleDbExtractorBase.h"
 
 namespace google
 {
